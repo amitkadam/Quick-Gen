@@ -4,12 +4,7 @@ public class _Byte {
 	int defaultLimit = 10;
 	byte[] defaultBytesArray;
 
-	private static void log(String aMessage) {
-		System.out.println(aMessage);
-	}
-
 	private byte getRandomByte(int aStart, int aEnd, Random aRandom){
-		byte[] randomByte = new byte[1]; 
 	    if (aStart > aEnd) {
 	      throw new IllegalArgumentException("Start cannot exceed End.");
 	    }
@@ -17,11 +12,10 @@ public class _Byte {
 	    	throw new IllegalArgumentException("Start or ENd cannot exceed byte range.");
 	    }
 	    //get the range, casting to byte to avoid overflow problems
-	    byte range = (byte) ((byte)aEnd - (byte)aStart + 0x01);
+	    int range = aEnd - aStart + 1;
 	    // compute a fraction of the range, 0 <= frac < range
-	    aRandom.nextBytes(randomByte);
-	    byte fraction = (byte)(range * randomByte[0]);
-	    byte randomNumber =  (byte)(fraction + aStart);
+	    int randomNum = aRandom.nextInt(range);
+	    byte randomNumber =  (byte)(randomNum + aStart);
 	    return randomNumber;
 	  
 	}
@@ -31,7 +25,7 @@ public class _Byte {
 		return getRandomByte(-127, 127, new Random());
 	}
 	
-	/** Generate 10 random bytes in the range -127..127. */
+	/** Generate random byte array of given limit in the range -127..127. */
 	public byte[] gen(int limit)
 	{
 		defaultBytesArray = new byte[limit];
@@ -57,7 +51,7 @@ public class _Byte {
 		return defaultBytesArray;
 	}
 	
-	/** Generate 10 random bytes in the range aStart..aEnd. */
+	/** Generate random bytes of given limit in the range aStart..aEnd. */
 	public byte[] gen(int limit, int aStart, int aEnd)
 	{
 		defaultBytesArray = new byte[limit];
