@@ -1,3 +1,5 @@
+package generator;
+
 public class _Char {
 	char[] defaultCharArray;
 	_Byte Bytes = new _Byte();
