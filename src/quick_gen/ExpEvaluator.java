@@ -34,12 +34,13 @@ public class ExpEvaluator
                 values.push(Double.parseDouble(sbuf.toString()));
             }
  
+
             // Current token is an opening brace, push it to 'ops'
-            else if (tokens[i] == '(')
+            if (i < tokens.length && tokens[i] == '(')
                 ops.push(tokens[i]);
  
             // Closing brace encountered, solve entire brace
-            else if (tokens[i] == ')')
+            if (i < tokens.length && tokens[i] == ')')
             {
                 while (ops.peek() != '(')
                   values.push(applyOp(ops.pop(), values.pop(), values.pop()));
@@ -47,8 +48,8 @@ public class ExpEvaluator
             }
  
             // Current token is an operator.
-            else if (tokens[i] == '+' || tokens[i] == '-' ||
-                     tokens[i] == '*' || tokens[i] == '/')
+            if (i < tokens.length && (tokens[i] == '+' || tokens[i] == '-' ||
+            		tokens[i] == '*' || tokens[i] == '/'))
             {
                 // While top of 'ops' has same or greater precedence to current
                 // token, which is an operator. Apply operator on top of 'ops'
@@ -107,23 +108,18 @@ public class ExpEvaluator
     
     public String replaceWithValues (String expression, Map<String, Double> values)
     {
-    	 
     	Iterator<String> iterator = values.keySet().iterator();
     	while(iterator.hasNext()){
     	  Object key   = iterator.next();
     	  Object value = values.get(key);
     	  expression = expression.replaceAll((String) key, Double.toString((double) value));
-    	  System.out.println(key + " " + value + " " + expression);
     	}
-    		
 		return expression;
-    	
     }
     
     public double evaluate (String expression, Map<String, Double> values)
     {
     	return evaluate(replaceWithValues (expression, values));
     }
-    
 }
 
