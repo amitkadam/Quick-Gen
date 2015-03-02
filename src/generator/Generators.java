@@ -2,9 +2,15 @@ package generator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.concurrent.Callable;
+
+import quick_gen.ExpEvaluator;;
 
 public class Generators {
 	int defaultValue = 10;
+	Callable<int[]> _Int;
+	int[] args;
 	_Integer intObj;
 	_Short shortObj;
 	_Byte byteObj;
@@ -26,6 +32,17 @@ public class Generators {
 		doubleObj = new _Double();
 		charObj = new _Char();
 		stringObj = new _String();
+		_Int = new Callable<int[]> () {
+			public int[] call() throws Exception {
+				switch (args.length) {
+				case 0:	return intObj.gen(10);
+				case 1: return intObj.gen(args[0]);
+				case 2: return intObj.gen(args[0], args[1]);
+				case 3: return intObj.gen(args[0], args[1], args[2]);
+				default: return new int[]{intObj.gen()};
+				}
+		   }
+		};
 	}
 	
 	public Object generate(Object obj) {
@@ -147,7 +164,92 @@ public class Generators {
 	public int[] Choose (int aStart, int aEnd) {
 		return intObj.gen(defaultValue, aStart, aEnd);
 	}
+
+	public boolean applyAction (String action, int number) {
+		return applyAction(action, number, "\\$");
+	}
+
+	public boolean applyAction(String action, int number, String replacer) {
+		switch(action.toLowerCase()) {
+		case "odd":
+			if ((number % 2) != 0)
+				return true;
+			else return false;
+		case "even":
+			if ((number % 2) == 0)
+				return true;
+			else return false;
+		case "pos?":
+			if (number >= 0)
+				return true;
+			else return false;
+		case "neg?":
+			if (number < 0)
+				return true;
+			else return false;
+		case "zero?":
+			if (number == 0) 
+				return true;
+			else return false;
+		}
+		
+		return new ExpEvaluator().evaluateCondition(action.replaceAll(replacer, Integer.toString(number)));
+	}
 	
+	public int[] convertIntegers(ArrayList<Integer> integers)
+	{
+	    int[] ret = new int[integers.size()];
+	    Iterator<Integer> iterator = integers.iterator();
+	    for (int i = 0; i < ret.length; i++)
+	    {
+	        ret[i] = iterator.next().intValue();
+	    }
+	    return ret;
+	}
+	
+	public int[] suchThat (String action, Callable<int[]> func, int...args) {
+		try {
+			int requiredNumbers;
+			int[] newArgs;
+			switch(args.length) {
+			case 0:
+				requiredNumbers = 10;
+				newArgs = new int[5];
+				break;
+			case 1:
+				requiredNumbers = args[0];
+				newArgs = new int[]{1};
+				break;
+			case 2:
+				requiredNumbers = 10;
+				newArgs = new int[]{1, args[0], args[1]};
+				break;
+			case 3:
+				requiredNumbers = args[0];
+				newArgs = new int[]{1, args[1], args[2]};
+				break;
+			default: throw new IllegalArgumentException("Illegal argument exception.");
+			}
+
+			ArrayList<Integer> filterNumbers = new ArrayList<Integer>();
+			int idx = 0;
+			while ( idx < requiredNumbers) {
+				this.args = newArgs;
+				int[] randomNumbers = func.call();
+				int number = (int) randomNumbers[0];
+				if (applyAction(action, number)) {
+					filterNumbers.add(number);
+					idx++;
+				}
+			}
+			return convertIntegers(filterNumbers);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+	}
+
 	private static void log(String aMessage) {
 		System.out.println(aMessage);
 	}
@@ -162,5 +264,8 @@ public class Generators {
 		log("random negative int: " + Arrays.toString (gen.negInt(10)));
 		log("random char: " + Arrays.toString (gen.Char(5)));
 		log("random words: " + Arrays.toString (gen.String(30)));
+		log("odd numbers from 10 30: " + Arrays.toString(gen.suchThat("odd", gen._Int, 15, 10, 30)));
+		log("Number !=15 from 10 30: " + Arrays.toString(gen.suchThat("$ != 15", gen._Int, 15, 10, 30)));
+		log("Check condition expression: " + new ExpEvaluator().evaluateCondition("1 == 1 && 2 == 2"));
 	}
 }
