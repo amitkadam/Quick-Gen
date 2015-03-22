@@ -106,5 +106,17 @@ public class Statement {
 		this.block_end_index = block_end_index;
 	}
 	
-	
+	public void print()
+	{
+		System.out.println("-----------------------");
+		System.out.println("type: " + type);
+		System.out.println("code: " + code);
+		System.out.println("line_num: " + line_no);
+		System.out.println("index: " + index);
+		System.out.println("block_start_line_no: " + block_start_line_no);
+		System.out.println("block_end_line_no: " + block_end_line_no);
+		System.out.println("block_start_index: " + block_start_index);
+		System.out.println("block_end_index: " + block_end_index);
+		System.out.println("-----------------------");
+	}
 }
