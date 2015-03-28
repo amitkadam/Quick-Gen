@@ -1,14 +1,14 @@
 package parser;
 
 public class Statement {
-	String type;
-	String code;
-	int line_no; //This line number in file
-	int index;   //This is index of statement in function
-	int block_start_line_no;
-	int block_end_line_no;
-	int block_start_index;
-	int block_end_index;
+	public String type;
+	public String code;
+	public int line_no; //This line number in file
+	public int index;   //This is index of statement in function
+	public int block_start_line_no;
+	public int block_end_line_no;
+	public int block_start_index;
+	public int block_end_index;
 	/**
 	 * @return the type
 	 */

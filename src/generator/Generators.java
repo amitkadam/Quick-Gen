@@ -4,12 +4,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.concurrent.Callable;
-
 import quick_gen.ExpEvaluator;;
 
 public class Generators {
 	int defaultValue = 10;
-	Callable<int[]> _Int;
+	public Callable<int[]> _Int;
 	int[] args;
 	_Integer intObj;
 	_Short shortObj;
@@ -22,7 +21,7 @@ public class Generators {
 	_String stringObj;
 	
 	
-	Generators() {
+	public Generators() {
 		intObj = new _Integer();
 		shortObj = new _Short();
 		byteObj = new _Byte();
@@ -192,7 +191,6 @@ public class Generators {
 				return true;
 			else return false;
 		}
-		
 		return new ExpEvaluator().evaluateCondition(action.replaceAll(replacer, Integer.toString(number)));
 	}
 	
