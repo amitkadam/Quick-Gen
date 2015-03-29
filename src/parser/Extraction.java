@@ -10,10 +10,6 @@ import java.util.regex.Pattern;
 
 import parser.JavaGrammer;
 
-/**
- * @author shalaka
- *
- */
 public class Extraction {
 	static Scanner in = new Scanner(System.in);
 	ArrayList<CodeLine> file_contents;
@@ -59,7 +55,7 @@ public class Extraction {
 
 	public void extractVarDetails()
 	{
-		file_contents = readFileInArrayList ("/Users/shalaka/Documents/Quick-Gen/src/parser/example.java");
+		file_contents = readFileInArrayList ("~/Documents/Quick-Gen/src/parser/example.java");
 
 		Matcher m_class = null;
 		Matcher m_class_name = null;
