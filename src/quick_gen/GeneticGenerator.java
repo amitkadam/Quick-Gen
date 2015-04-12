@@ -9,6 +9,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import generator.Generators;
+import parser.Extraction;
 import parser.Statement;
 
 public class GeneticGenerator {
@@ -57,7 +58,7 @@ public class GeneticGenerator {
 
 	// Finally convert potential values data to set(to get unique of them)
 	// This function will generate initial data in genetic algorithm.
-	public static void generateWithCondition(ArrayList<String> conditions, int iterations) {
+	public static void generateWithCondition(ArrayList<String> conditions, int iterations, String mappingVariable) {
 		// Concat all conditions with &&
 		String allCnds = new String(conditions.get(0));
 		conditions.remove(0);
@@ -73,22 +74,21 @@ public class GeneticGenerator {
 			allMatches.add(Integer.parseInt(m.group()));
 		}
 		Collections.sort(allMatches);
-		// use global mapping instead of x
-		int[] initialPop = gen.suchThat(allCnds.replace('x', '$'), gen._Int, iterations, allMatches.get(0), allMatches.get(allMatches.size()-1));
+		int[] initialPop = gen.suchThat(allCnds.replaceAll(mappingVariable, "$"), gen._Int, iterations, allMatches.get(0), allMatches.get(allMatches.size()-1));
 		for (int i = 0; i < initialPop.length; i++)
 			initialPopulation.add(Integer.valueOf(initialPop[i]));
 
 		log("Initial population: "+ initialPopulation.toString());
 	}
 
-	public static void generateParents (Statement []s, ArrayList<Integer> initialVals) {
+	public static void generateParents (Statement []s, ArrayList<Integer> initialVals, String mappingVariable) {
 		//ArrayList<Integer> parents = new ArrayList<Integer>();
 		//ArrayList<Integer> failedCases = new ArrayList<Integer>();
 		//ExpEvaluator eval = new ExpEvaluator();
 		for (int idx = 0; idx < initialVals.size(); idx++) {
 			int initialValue = initialVals.get(idx);
 			// Pass child through coupling sequence if it pass all the sequence then add
-			Map<String, Integer> result = fitnessFunction(s, initialValue);
+			Map<String, Integer> result = fitnessFunction(s, initialValue, mappingVariable);
 			if (result.get("result") == 1) {
 				parents.add(result.get("value"));
 			} else
@@ -98,7 +98,7 @@ public class GeneticGenerator {
 		log("Failed cases: "+ failedParents.toString());
 	}
 
-	public static Map<String, Integer> fitnessFunction(Statement []s, int initialVal) {
+	public static Map<String, Integer> fitnessFunction(Statement []s, int initialVal, String mappingVariable) {
 		ArrayList<Integer> parents = new ArrayList<Integer>();
 		ArrayList<Integer> failedCases = new ArrayList<Integer>();
 		Map<String, Integer> result = new HashMap<String, Integer>();
@@ -106,14 +106,12 @@ public class GeneticGenerator {
 		int initialValue = initialVal;
 		int i;
 		Map<String, Double> replacer = new HashMap<String, Double>();
-		// use global mapping table instead of x
-		replacer.put("x", (double)initialValue);
+		replacer.put(mappingVariable, (double)initialValue);
 		for(i = 0; i < s.length; i++) {
 
 			if (s[i].type.equals("cnd")) {
-				// use global mapping table instead of x
 				//log(s[i].code.replaceAll("x", Integer.toString(initialValue)));
-				if (eval.evaluateCondition(s[i].code.replaceAll("x", Integer.toString(initialValue))))
+				if (eval.evaluateCondition(s[i].code.replaceAll(mappingVariable, Integer.toString(initialValue))))
 					continue;
 				else {
 					result.put("result", 0);
@@ -124,8 +122,7 @@ public class GeneticGenerator {
 				}
 			}
 			else if (s[i].type.equals("exp")) {
-				// use global mapping table instead of x
-				replacer.put("x", (double)initialValue);
+				replacer.put(mappingVariable, (double)initialValue);
 				initialValue = (int) eval.evaluate(s[i].code, replacer);
 			}
 		}
@@ -139,7 +136,7 @@ public class GeneticGenerator {
 		return result;
 	}
 
-	public static void crossOver (Statement []s, ArrayList<Integer> parents) {
+	public static void crossOver (Statement []s, ArrayList<Integer> parents, String mappingVariable) {
 
 		// TODO
 		/* Make possible groups of parents
@@ -171,7 +168,7 @@ public class GeneticGenerator {
 				int child = Integer.parseInt(binaryGene, 2);
 
 				// Pass child through coupling sequence if it pass all the sequence then add
-				Map<String, Integer> result = fitnessFunction(s, child);
+				Map<String, Integer> result = fitnessFunction(s, child, mappingVariable);
 				if (result.get("result") == 1) {
 					childs.add(result.get("value"));
 				} else
@@ -183,7 +180,7 @@ public class GeneticGenerator {
 
 	}
 
-	public static void mutation (Statement []s, ArrayList<Integer> parents) {
+	public static void mutation (Statement []s, ArrayList<Integer> parents, String mappingVariable) {
 		// TODO
 		/*
 		 * Take one parent at a time
@@ -208,7 +205,7 @@ public class GeneticGenerator {
 			int child = Integer.parseInt(binaryChild, 2);
 
 			// Pass child through coupling sequence if it pass all the sequence then add
-			Map<String, Integer> result = fitnessFunction(s, child);
+			Map<String, Integer> result = fitnessFunction(s, child, mappingVariable);
 			if (result.get("result") == 1) {
 				childs.add(result.get("value"));
 			} else
@@ -228,6 +225,7 @@ public class GeneticGenerator {
 
 	public static void main(String...strings) {
 		Statement []s = new Statement[5];
+		Generators gen = new Generators();
 		s[0] = new Statement();
 		s[0].setType("exp");
 		s[0].setCode("x + 3");
@@ -249,29 +247,49 @@ public class GeneticGenerator {
 		s[4].setCode("x < 150");
 
 		init();
-		ArrayList<String> conds = extractConditions(s);
-		if(conds.size() == 0) {
-			Generators gen = new Generators();
-			// It has to be number of iterations
-			gen.Int(12);
-			return;
-		}
-		generateWithCondition(conds, 10);
-		initialPopulation = new ArrayList<Integer> (new LinkedHashSet<Integer>(initialPopulation));
-		generateParents(s, initialPopulation);
+		userInput user = new userInput();
+		user.getUserInput();
+		Extraction e = new Extraction();
+		e.extractVarDetails(user.getFilePath());
 
-		parents = new ArrayList<Integer> (new LinkedHashSet<Integer>(parents));
-		log("---------------------------------------------------");
-		log("CrossOver result: ");
-		crossOver(s, parents);
-		removeDuplicate();
-		log("childs: "+ childs.toString());
-		log("Failed child cases: "+ failedChilds.toString());
-		log("---------------------------------------------------");
-		log("Mutation result: ");
-		mutation(s, parents);
-		removeDuplicate();
-		log("childs: "+ childs.toString());
-		log("Failed child cases: "+ failedChilds.toString());
+		for (int i = 0; i < user.mapping.length; i++) {
+			if (user.mapping[i].type.equals("boolean")) {
+				gen.Boolean(user.iterations);
+				continue;
+			}
+			else if (user.mapping[i].type.equals("String")) {
+				gen.String(user.iterations);
+				continue;
+			}
+			else if (user.mapping[i].type.equals("char")) {
+				gen.Char(user.iterations);
+				continue;
+			}
+			else if (user.mapping[i].type.equals("int")) {
+				ArrayList<String> conds = extractConditions(s);
+				if(conds.size() == 0) {
+					// It has to be number of iterations
+					gen.Int(12);
+					return;
+				}
+				generateWithCondition(conds, 10, user.mapping[i].symbolName);
+				initialPopulation = new ArrayList<Integer> (new LinkedHashSet<Integer>(initialPopulation));
+				generateParents(s, initialPopulation, user.mapping[i].symbolName);
+
+				parents = new ArrayList<Integer> (new LinkedHashSet<Integer>(parents));
+				log("---------------------------------------------------");
+				log("CrossOver result: ");
+				crossOver(s, parents, user.mapping[i].symbolName);
+				removeDuplicate();
+				log("childs: "+ childs.toString());
+				log("Failed child cases: "+ failedChilds.toString());
+				log("---------------------------------------------------");
+				log("Mutation result: ");
+				mutation(s, parents, user.mapping[i].symbolName);
+				removeDuplicate();
+				log("childs: "+ childs.toString());
+				log("Failed child cases: "+ failedChilds.toString());
+			}
+		}
 	}
 }
