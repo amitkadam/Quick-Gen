@@ -53,9 +53,9 @@ public class Extraction {
 		return file_contents;
 	}
 
-	public void extractVarDetails()
+	public void extractVarDetails(String filePath)
 	{
-		file_contents = readFileInArrayList ("~/Documents/Quick-Gen/src/parser/example.java");
+		file_contents = readFileInArrayList (filePath);
 
 		Matcher m_class = null;
 		Matcher m_class_name = null;
@@ -401,7 +401,7 @@ public class Extraction {
 
 	public static void main(String[] args) {
 		Extraction e = new Extraction();
-		e.extractVarDetails();
+		e.extractVarDetails("~/Documents/Quick-Gen/src/parser/example.java");
 
 	}
 }
