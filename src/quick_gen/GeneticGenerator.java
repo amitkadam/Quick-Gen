@@ -1,9 +1,9 @@
 package quick_gen;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -16,8 +16,8 @@ public class GeneticGenerator {
 	/*{"exp" "x * 3"
 	 * "cnd" "x > 50"
 	 * "exp" "x - 2"
-	 * "exp" "x * 2"
-	 * "cnd" "x < 200"} */
+	 * "exp" "x + 50"
+	 * "cnd" "x < 250"} */
 
 	// Revere the possible conditions, this is to generate -ve data values
 	/* {"==" "!="
@@ -27,21 +27,41 @@ public class GeneticGenerator {
 	 *  ">"  "<="
 	 *  "<=" ">"} */
 
+	public static ArrayList<Integer> parents;
+	public static ArrayList<Integer> failedParents;
+	public static ArrayList<Integer> childs;
+	public static ArrayList<Integer> failedChilds;
+	public static ArrayList<Integer> initialPopulation;
+
 	private static void log(String aMessage) {
 		System.out.println(aMessage);
 	}
 
+	public static void init() {
+		parents = new ArrayList<Integer>();
+		failedParents = new ArrayList<Integer>();
+		childs = new ArrayList<Integer>();
+		failedChilds = new ArrayList<Integer>();
+		initialPopulation = new ArrayList<Integer>();
+	}
+
+	public static ArrayList<String> extractConditions(Statement []s) {
+		ArrayList<String> cnds = new ArrayList<String>();
+		for(int i = 0; i < s.length; i++) {
+			if (s[i].type.equals("cnd")) {
+				cnds.add(s[i].code);
+			}
+		}
+		return cnds;
+	}
+
 	// Finally convert potential values data to set(to get unique of them)
 	// This function will generate initial data in genetic algorithm.
-	public static void generateWithCondition(String[] conditions, int iterations) {
-		// Use conditions parameter instead of temporary cnds
-		ArrayList<String> cnds = new ArrayList<String>();
-		cnds.add("x < 200");
-		cnds.add("x > 50");
+	public static void generateWithCondition(ArrayList<String> conditions, int iterations) {
 		// Concat all conditions with &&
-		String allCnds = new String(cnds.get(0));
-		cnds.remove(0);
-		for (String s : cnds){
+		String allCnds = new String(conditions.get(0));
+		conditions.remove(0);
+		for (String s : conditions){
 			allCnds = allCnds.concat(" && "+ s);
 		}
 
@@ -54,44 +74,30 @@ public class GeneticGenerator {
 		}
 		Collections.sort(allMatches);
 		// use global mapping instead of x
-		log("Initial population: "+ Arrays.toString(gen.suchThat(allCnds.replace('x', '$'), gen._Int, iterations, allMatches.get(0), allMatches.get(allMatches.size()-1))));
+		int[] initialPop = gen.suchThat(allCnds.replace('x', '$'), gen._Int, iterations, allMatches.get(0), allMatches.get(allMatches.size()-1));
+		for (int i = 0; i < initialPop.length; i++)
+			initialPopulation.add(Integer.valueOf(initialPop[i]));
+
+		log("Initial population: "+ initialPopulation.toString());
 	}
 
 	public static void generateParents (Statement []s, ArrayList<Integer> initialVals) {
-		ArrayList<Integer> parents = new ArrayList<Integer>();
-		ArrayList<Integer> failedCases = new ArrayList<Integer>();
-		ExpEvaluator eval = new ExpEvaluator();
+		//ArrayList<Integer> parents = new ArrayList<Integer>();
+		//ArrayList<Integer> failedCases = new ArrayList<Integer>();
+		//ExpEvaluator eval = new ExpEvaluator();
 		for (int idx = 0; idx < initialVals.size(); idx++) {
 			int initialValue = initialVals.get(idx);
-			int i;
-			Map<String, Double> replacer = new HashMap<String, Double>();
-			// use global mapping table instead of x
-			replacer.put("x", (double)initialValue);
-			for(i = 0; i < s.length; i++) {
-
-				if (s[i].type.equals("cnd")) {
-					// use global mapping table instead of x
-					//log(s[i].code.replaceAll("x", Integer.toString(initialValue)));
-					if (eval.evaluateCondition(s[i].code.replaceAll("x", Integer.toString(initialValue))))
-						continue;
-					else {
-						failedCases.add(initialValue);
-						break;
-					}
-				}
-				else if (s[i].type.equals("exp")) {
-					// use global mapping table instead of x
-					replacer.put("x", (double)initialValue);
-					initialValue = (int) eval.evaluate(s[i].code, replacer);
-				}
-			}
-			if (i >= s.length)
-				parents.add(initialValue);
+			// Pass child through coupling sequence if it pass all the sequence then add
+			Map<String, Integer> result = fitnessFunction(s, initialValue);
+			if (result.get("result") == 1) {
+				parents.add(result.get("value"));
+			} else
+				failedParents.add(result.get("value"));
 		}
 		log("Parents: "+ parents.toString());
-		log("Failed cases: "+ failedCases.toString());
+		log("Failed cases: "+ failedParents.toString());
 	}
-	
+
 	public static Map<String, Integer> fitnessFunction(Statement []s, int initialVal) {
 		ArrayList<Integer> parents = new ArrayList<Integer>();
 		ArrayList<Integer> failedCases = new ArrayList<Integer>();
@@ -130,13 +136,11 @@ public class GeneticGenerator {
 			result.put("orig", initialVal);
 			parents.add(initialValue);
 		}
-		//log("Parents: "+ parents.toString());
-		//log("Failed cases: "+ failedCases.toString());
 		return result;
 	}
 
 	public static void crossOver (Statement []s, ArrayList<Integer> parents) {
-		
+
 		// TODO
 		/* Make possible groups of parents
 		 * Convert both decimal parents into binary
@@ -144,10 +148,10 @@ public class GeneticGenerator {
 		 * Take first half of first parent and second half of second parent
 		 * Merge them together and convert it back to decimal
 		 * Pass that number through coupling sequence
-		 * If it satisfies then add it to the child node  
-		*/
-		ArrayList<Integer> childs = new ArrayList<Integer>();
-		ArrayList<Integer> failedChilds = new ArrayList<Integer>();
+		 * If it satisfies then add it to the child node
+		 */
+		//ArrayList<Integer> childs = new ArrayList<Integer>();
+		//ArrayList<Integer> failedChilds = new ArrayList<Integer>();
 		int idx1, idx2;
 		for (idx1 = 0; idx1 < parents.size() - 1; idx1++) {
 			String parent1 = Integer.toBinaryString(parents.get(idx1));
@@ -165,7 +169,7 @@ public class GeneticGenerator {
 				};
 				String binaryGene = parentParts1[0] + parentParts2[1];
 				int child = Integer.parseInt(binaryGene, 2);
-				
+
 				// Pass child through coupling sequence if it pass all the sequence then add
 				Map<String, Integer> result = fitnessFunction(s, child);
 				if (result.get("result") == 1) {
@@ -174,23 +178,23 @@ public class GeneticGenerator {
 					failedChilds.add(result.get("value"));
 			}
 		}
-		log("childs: "+ childs.toString());
-		log("Failed child cases: "+ failedChilds.toString());
-		
+		//log("childs: "+ childs.toString());
+		//log("Failed child cases: "+ failedChilds.toString());
+
 	}
-	
+
 	public static void mutation (Statement []s, ArrayList<Integer> parents) {
 		// TODO
-		/* 
+		/*
 		 * Take one parent at a time
 		 * Convert decimal parent into binary bits
 		 * Get random position of any binary bit and flip it.
 		 * Convert that binary sequence into decimal
 		 * Pass that number through coupling sequence
-		 * If it satisfies coupling sequence then add it to child node. 
+		 * If it satisfies coupling sequence then add it to child node.
 		 * */
-		ArrayList<Integer> childs = new ArrayList<Integer>();
-		ArrayList<Integer> failedChilds = new ArrayList<Integer>();
+		//ArrayList<Integer> childs = new ArrayList<Integer>();
+		//ArrayList<Integer> failedChilds = new ArrayList<Integer>();
 		for(int idx = 0; idx < parents.size(); idx++) {
 			String binaryParent = Integer.toBinaryString(parents.get(idx));
 			int mid = binaryParent.length()/2;
@@ -210,12 +214,19 @@ public class GeneticGenerator {
 			} else
 				failedChilds.add(result.get("value"));
 		}
-		log("childs: "+ childs.toString());
-		log("Failed child cases: "+ failedChilds.toString());
+		//log("childs: "+ childs.toString());
+		//log("Failed child cases: "+ failedChilds.toString());
 	}
-	
+
+	public static void removeDuplicate() {
+		//initialPopulation = new ArrayList<Integer> (new LinkedHashSet<Integer>(initialPopulation));
+		//parents = new ArrayList<Integer> (new LinkedHashSet<Integer>(parents));
+		failedParents = new ArrayList<Integer> (new LinkedHashSet<Integer>(failedParents));
+		childs = new ArrayList<Integer> (new LinkedHashSet<Integer>(childs));
+		failedChilds = new ArrayList<Integer> (new LinkedHashSet<Integer>(failedChilds));
+	}
+
 	public static void main(String...strings) {
-		generateWithCondition(null, 10);
 		Statement []s = new Statement[5];
 		s[0] = new Statement();
 		s[0].setType("exp");
@@ -231,42 +242,36 @@ public class GeneticGenerator {
 
 		s[3] = new Statement();
 		s[3].setType ("exp");
-		s[3].setCode("x * 2");
+		s[3].setCode("x + 50");
 
 		s[4] = new Statement();
 		s[4].setType("cnd");
-		s[4].setCode("x < 250");
+		s[4].setCode("x < 150");
 
-		ArrayList<Integer> initialVals = new ArrayList<Integer>();
-		initialVals.add(158);
-		initialVals.add(141);
-		initialVals.add(109);
-		initialVals.add(164);
-		initialVals.add(190);
-		initialVals.add(110);
-		initialVals.add(78);
-		initialVals.add(66);
-		initialVals.add(56);
-		initialVals.add(19);
-		//log(Integer.toBinaryString(318));
-		
-		
-		// initialVals = generateWithConditios(conds[], iterations);
-		generateParents(s, initialVals);
-		
-		
-		ArrayList<Integer> par = new ArrayList<Integer>();
-		par.add(220);
-		par.add(222);
-		par.add(158);
-		par.add(134);
-		par.add(114);
-		
+		init();
+		ArrayList<String> conds = extractConditions(s);
+		if(conds.size() == 0) {
+			Generators gen = new Generators();
+			// It has to be number of iterations
+			gen.Int(12);
+			return;
+		}
+		generateWithCondition(conds, 10);
+		initialPopulation = new ArrayList<Integer> (new LinkedHashSet<Integer>(initialPopulation));
+		generateParents(s, initialPopulation);
+
+		parents = new ArrayList<Integer> (new LinkedHashSet<Integer>(parents));
 		log("---------------------------------------------------");
 		log("CrossOver result: ");
-		crossOver(s, par);
+		crossOver(s, parents);
+		removeDuplicate();
+		log("childs: "+ childs.toString());
+		log("Failed child cases: "+ failedChilds.toString());
 		log("---------------------------------------------------");
 		log("Mutation result: ");
-		mutation(s, par);
+		mutation(s, parents);
+		removeDuplicate();
+		log("childs: "+ childs.toString());
+		log("Failed child cases: "+ failedChilds.toString());
 	}
 }
