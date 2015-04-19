@@ -250,7 +250,7 @@ public class GeneticGenerator {
 		userInput user = new userInput();
 		user.getUserInput();
 		Extraction e = new Extraction();
-		e.extractVarDetails(user.getFilePath());
+		functions = e.extractFunctionsDetails(user.getFilePath());
 
 		for (int i = 0; i < user.mapping.length; i++) {
 			if (user.mapping[i].type.equals("boolean")) {
