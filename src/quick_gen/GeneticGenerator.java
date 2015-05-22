@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 import generator.Generators;
 import parser.Extraction;
 import parser.Statement;
+import parser.Function;
 
 public class GeneticGenerator {
 	// Map to generate data using genetic algorithm
@@ -33,7 +34,9 @@ public class GeneticGenerator {
 	public static ArrayList<Integer> childs;
 	public static ArrayList<Integer> failedChilds;
 	public static ArrayList<Integer> initialPopulation;
-
+	public static ArrayList<Function> functions;
+	
+	
 	private static void log(String aMessage) {
 		System.out.println(aMessage);
 	}
@@ -44,6 +47,7 @@ public class GeneticGenerator {
 		childs = new ArrayList<Integer>();
 		failedChilds = new ArrayList<Integer>();
 		initialPopulation = new ArrayList<Integer>();
+		functions = new ArrayList<Function>();
 	}
 
 	public static ArrayList<String> extractConditions(Statement []s) {

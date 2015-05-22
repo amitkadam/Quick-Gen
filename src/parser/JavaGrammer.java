@@ -22,5 +22,6 @@ public class JavaGrammer {
 	static String template="[<>]";
 	static String end_statment=";";
 	static String new_statment="\\n";
+	static String equal_to = "=";
 	public static String listenerMethod[]={"getActionCommand","itemStateChanged"};
 	public static String ignoreMethod[]={"equals"};}
