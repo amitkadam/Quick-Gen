@@ -30,7 +30,7 @@ public class Extraction {
 			.compile(JavaGrammer.opening_circular_brace);
 	Pattern p_closing_cir_brace = Pattern
 			.compile(JavaGrammer.closing_circular_brace);
-	ArrayList<Function> functions = new ArrayList<Function>();
+	public ArrayList<Function> functions = new ArrayList<Function>();
 
 	public ArrayList<CodeLine> readFileInArrayList(String file_path) {
 		ArrayList<CodeLine> file_contents = new ArrayList<CodeLine>();
@@ -53,7 +53,7 @@ public class Extraction {
 		return file_contents;
 	}
 
-	public ArrayList<Function> extractFunctionsDetails(String filePath) {
+	public void extractFunctionsDetails(String filePath) {
 		file_contents = readFileInArrayList(filePath);
 
 		Matcher m_class = null;
@@ -65,8 +65,6 @@ public class Extraction {
 		int pos = 0;
 		Boolean has_return_type = null;
 		Function fn;
-
-		ArrayList<Function> functions = new ArrayList<Function>();
 
 		total_lines = file_contents.size();
 
@@ -121,7 +119,6 @@ public class Extraction {
 				}
 			}
 		}
-		return functions;
 	}
 
 	private ArrayList<Statement> processFunctionBody(Matcher m_label) {
