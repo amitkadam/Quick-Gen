@@ -67,7 +67,7 @@ public class Extraction {
 		Function fn;
 
 		total_lines = file_contents.size();
-
+		line_num = 0;
 		// process file line by line
 		while (line_num < total_lines) {
 			CodeLine c = file_contents.get(line_num++);
@@ -163,7 +163,7 @@ public class Extraction {
 					block_start = 0;
 				}
 				s = new Statement();
-				s.setType("cond-if");
+				s.setType("cnd");
 				s.setCode(cond);
 				s.setLine_no(ln_num);
 				s.setIndex(ln_num - fn_start);
@@ -379,11 +379,5 @@ public class Extraction {
 			return m_class_name.group();
 		} else
 			return null;
-	}
-
-	public static void main(String[] args) {
-		Extraction e = new Extraction();
-		e.extractFunctionsDetails("/Users/Shalaka/Documents/Quick-Gen/src/parser/example.java");
-
 	}
 }

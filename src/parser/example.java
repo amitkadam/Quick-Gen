@@ -17,7 +17,7 @@ public class example {
 	{
 		
 		set_x (2);	
-		if (y > 1)
+		if (y > 1 && y < 40)
 		{
 			y = y - 1;
 		}
@@ -25,7 +25,7 @@ public class example {
 		{
 			y = y + 1;
 		}
-		if (x > 1)
+		if (x > 1 && x < 50)
 		{
 			inc ();
 		}

@@ -79,7 +79,9 @@ public class GeneticGenerator {
 			allMatches.add(Integer.parseInt(m.group()));
 		}
 		Collections.sort(allMatches);
-		int[] initialPop = gen.suchThat(allCnds.replaceAll(mappingVariable, "$"), gen._Int, iterations, allMatches.get(0), allMatches.get(allMatches.size()-1));
+		int startRange = allMatches.get(0);
+		int endRange = allMatches.size() > 1 ? allMatches.get(allMatches.size()-1) : Integer.MAX_VALUE;
+		int[] initialPop = gen.suchThat(allCnds.replaceAll(mappingVariable, "\\$"), gen._Int, iterations, startRange, endRange);
 		for (int i = 0; i < initialPop.length; i++)
 			initialPopulation.add(Integer.valueOf(initialPop[i]));
 
@@ -275,9 +277,11 @@ public class GeneticGenerator {
 				ArrayList<Statement> sequence = new ArrayList<Statement>();
 				sequence = seq_gen.genSequence(e.functions, "main", user.mapping[i].symbolName);
 				Statement[] s = new Statement[sequence.size()];
+				sequence.toArray(s);
 				ArrayList<String> conds = extractConditions(s);
 				if(conds.size() == 0) {
 					// It has to be number of iterations
+					log("No conditions found...");
 					gen.Int(12);
 					return;
 				}
