@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 
 import generator.Generators;
 import parser.Extraction;
+import parser.SequenceGen;
 import parser.Statement;
 import parser.Function;
 
@@ -60,7 +61,7 @@ public class GeneticGenerator {
 		return cnds;
 	}
 
-	// Finally convert potential values data to set(to get unique of them)
+	// Finally co/vert potential values data to set(to get unique of them)
 	// This function will generate initial data in genetic algorithm.
 	public static void generateWithCondition(ArrayList<String> conditions, int iterations, String mappingVariable) {
 		// Concat all conditions with &&
@@ -228,9 +229,10 @@ public class GeneticGenerator {
 	}
 
 	public static void main(String...strings) {
-		Statement []s = new Statement[5];
+		//Statement []s = new Statement[5];
 		Generators gen = new Generators();
-		s[0] = new Statement();
+		SequenceGen seq_gen = new SequenceGen();
+		/*s[0] = new Statement();
 		s[0].setType("exp");
 		s[0].setCode("x + 3");
 
@@ -249,13 +251,13 @@ public class GeneticGenerator {
 		s[4] = new Statement();
 		s[4].setType("cnd");
 		s[4].setCode("x < 150");
-
+        */	
 		init();
 		userInput user = new userInput();
 		user.getUserInput();
 		Extraction e = new Extraction();
-		functions = e.extractFunctionsDetails(user.getFilePath());
-
+		e.extractFunctionsDetails(user.getFilePath());
+		
 		for (int i = 0; i < user.mapping.length; i++) {
 			if (user.mapping[i].type.equals("boolean")) {
 				gen.Boolean(user.iterations);
@@ -270,6 +272,9 @@ public class GeneticGenerator {
 				continue;
 			}
 			else if (user.mapping[i].type.equals("int")) {
+				ArrayList<Statement> sequence = new ArrayList<Statement>();
+				sequence = seq_gen.genSequence(e.functions, "main", user.mapping[i].symbolName);
+				Statement[] s = new Statement[sequence.size()];
 				ArrayList<String> conds = extractConditions(s);
 				if(conds.size() == 0) {
 					// It has to be number of iterations
