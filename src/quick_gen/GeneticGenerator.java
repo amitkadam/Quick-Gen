@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.jfree.ui.RefineryUtilities;
+
 import generator.Generators;
 import parser.Extraction;
 import parser.SequenceGen;
@@ -234,6 +236,13 @@ public class GeneticGenerator {
 		childs = new ArrayList<Integer> (new LinkedHashSet<Integer>(childs));
 		failedChilds = new ArrayList<Integer> (new LinkedHashSet<Integer>(failedChilds));
 	}
+	
+	public static void drawBarChart(Map<String, Map<String, ArrayList<Integer>>> resultMap) {
+		   BarChart_AWT chart = new BarChart_AWT("Test data Statistics", "Automated Test Data Generation", resultMap);
+		   chart.pack( );        
+		   RefineryUtilities.centerFrameOnScreen( chart );        
+		   chart.setVisible( true );
+	}
 
 	public static void main(String...strings) {
 		//Statement []s = new Statement[5];
@@ -332,5 +341,8 @@ public class GeneticGenerator {
 		for (Map.Entry entry : geneticResult.entrySet()) {
 		    log(entry.getKey() + ": " + entry.getValue());
 		}
+		
+		// Draw barchart
+		drawBarChart(geneticResult);
 	}
 }
