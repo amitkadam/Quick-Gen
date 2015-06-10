@@ -35,6 +35,9 @@ public class GeneticGenerator {
 	public static ArrayList<Integer> childs;
 	public static ArrayList<Integer> failedChilds;
 	public static ArrayList<Integer> initialPopulation;
+	public static ArrayList<Integer> passedData;
+	public static ArrayList<Integer> failedData;
+	public static Map<String, Map<String, ArrayList<Integer>>> geneticResult;
 	public static ArrayList<Function> functions;
 	
 	
@@ -48,6 +51,8 @@ public class GeneticGenerator {
 		childs = new ArrayList<Integer>();
 		failedChilds = new ArrayList<Integer>();
 		initialPopulation = new ArrayList<Integer>();
+		passedData = new ArrayList<Integer>();
+		failedData = new ArrayList<Integer>();
 		functions = new ArrayList<Function>();
 	}
 
@@ -254,13 +259,16 @@ public class GeneticGenerator {
 		s[4].setType("cnd");
 		s[4].setCode("x < 150");
         */	
-		init();
 		userInput user = new userInput();
 		user.getUserInput();
 		Extraction e = new Extraction();
 		e.extractFunctionsDetails(user.getFilePath());
 		
+		// Initialize the result
+		geneticResult = new HashMap<String, Map<String, ArrayList<Integer>>>();
+		
 		for (int i = 0; i < user.mapping.length; i++) {
+			init();
 			if (user.mapping[i].type.equals("boolean")) {
 				gen.Boolean(user.iterations);
 				continue;
@@ -302,7 +310,27 @@ public class GeneticGenerator {
 				removeDuplicate();
 				log("childs: "+ childs.toString());
 				log("Failed child cases: "+ failedChilds.toString());
+			
+				// Merge passed parent and childs into passed data.
+				parents.addAll(childs);
+				passedData = new ArrayList<Integer> (new LinkedHashSet<Integer>(parents));
+
+				// merge failed parent and child data to failed-data
+				failedParents.addAll(failedChilds);
+				failedData = new ArrayList<Integer> (new LinkedHashSet<Integer> (failedParents));
+				
+				// Add data of current symbol to map
+				Map<String, ArrayList<Integer>> resultMap = new HashMap<String, ArrayList<Integer>>();
+				resultMap.put("pass", passedData);
+				resultMap.put("failed", failedData);
+				geneticResult.put(user.mapping[i].symbolName, resultMap);
 			}
+		}
+		//Print result map
+		log("---------------------------------------------------");
+		log("Final Result:");
+		for (Map.Entry entry : geneticResult.entrySet()) {
+		    log(entry.getKey() + ": " + entry.getValue());
 		}
 	}
 }
