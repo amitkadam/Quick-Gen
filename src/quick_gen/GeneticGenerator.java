@@ -174,7 +174,7 @@ public class GeneticGenerator {
 			};
 			for (idx2 = idx1 + 1; idx2 < parents.size(); idx2++) {
 				String parent2 = Integer.toBinaryString(parents.get(idx2));
-				final int mid2 = parent1.length() / 2;
+				final int mid2 = parent2.length() / 2;
 				String[] parentParts2 = {
 						parent2.substring(0, mid2),
 						parent2.substring(mid2),
