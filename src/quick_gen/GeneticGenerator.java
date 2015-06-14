@@ -1,6 +1,7 @@
 package quick_gen;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -32,14 +33,14 @@ public class GeneticGenerator {
 	 *  ">"  "<="
 	 *  "<=" ">"} */
 
-	public static ArrayList<Integer> parents;
-	public static ArrayList<Integer> failedParents;
-	public static ArrayList<Integer> childs;
-	public static ArrayList<Integer> failedChilds;
-	public static ArrayList<Integer> initialPopulation;
-	public static ArrayList<Integer> passedData;
-	public static ArrayList<Integer> failedData;
-	public static Map<String, Map<String, ArrayList<Integer>>> geneticResult;
+	public static ArrayList parents;
+	public static ArrayList failedParents;
+	public static ArrayList childs;
+	public static ArrayList failedChilds;
+	public static ArrayList initialPopulation;
+	public static ArrayList passedData;
+	public static ArrayList failedData;
+	public static Map<String, Map<String, ArrayList>> geneticResult;
 	public static ArrayList<Function> functions;
 	
 	
@@ -48,13 +49,13 @@ public class GeneticGenerator {
 	}
 
 	public static void init() {
-		parents = new ArrayList<Integer>();
-		failedParents = new ArrayList<Integer>();
-		childs = new ArrayList<Integer>();
-		failedChilds = new ArrayList<Integer>();
-		initialPopulation = new ArrayList<Integer>();
-		passedData = new ArrayList<Integer>();
-		failedData = new ArrayList<Integer>();
+		parents = new ArrayList();
+		failedParents = new ArrayList();
+		childs = new ArrayList();
+		failedChilds = new ArrayList();
+		initialPopulation = new ArrayList();
+		passedData = new ArrayList();
+		failedData = new ArrayList();
 		functions = new ArrayList<Function>();
 	}
 
@@ -104,9 +105,9 @@ public class GeneticGenerator {
 			// Pass child through coupling sequence if it pass all the sequence then add
 			Map<String, Integer> result = fitnessFunction(s, initialValue, mappingVariable);
 			if (result.get("result") == 1) {
-				parents.add(result.get("value"));
+				parents.add(result.get("orig"));
 			} else
-				failedParents.add(result.get("value"));
+				failedParents.add(result.get("orig"));
 		}
 		log("Parents: "+ parents.toString());
 		log("Failed cases: "+ failedParents.toString());
@@ -184,9 +185,9 @@ public class GeneticGenerator {
 				// Pass child through coupling sequence if it pass all the sequence then add
 				Map<String, Integer> result = fitnessFunction(s, child, mappingVariable);
 				if (result.get("result") == 1) {
-					childs.add(result.get("value"));
+					childs.add(result.get("orig"));
 				} else
-					failedChilds.add(result.get("value"));
+					failedChilds.add(result.get("orig"));
 			}
 		}
 		//log("childs: "+ childs.toString());
@@ -221,9 +222,9 @@ public class GeneticGenerator {
 			// Pass child through coupling sequence if it pass all the sequence then add
 			Map<String, Integer> result = fitnessFunction(s, child, mappingVariable);
 			if (result.get("result") == 1) {
-				childs.add(result.get("value"));
+				childs.add(result.get("orig"));
 			} else
-				failedChilds.add(result.get("value"));
+				failedChilds.add(result.get("orig"));
 		}
 		//log("childs: "+ childs.toString());
 		//log("Failed child cases: "+ failedChilds.toString());
@@ -237,11 +238,27 @@ public class GeneticGenerator {
 		failedChilds = new ArrayList<Integer> (new LinkedHashSet<Integer>(failedChilds));
 	}
 	
-	public static void drawBarChart(Map<String, Map<String, ArrayList<Integer>>> resultMap) {
+	public static void drawBarChart(Map<String, Map<String, ArrayList>> resultMap) {
 		   BarChart_AWT chart = new BarChart_AWT("Test data Statistics", "Automated Test Data Generation", resultMap);
 		   chart.pack( );        
 		   RefineryUtilities.centerFrameOnScreen( chart );        
 		   chart.setVisible( true );
+	}
+	
+	public static void mergeResult(String symbolName) {
+		// Merge passed parent and childs into passed data.
+		parents.addAll(childs);
+		passedData = new ArrayList<Integer> (new LinkedHashSet<Integer>(parents));
+
+		// merge failed parent and child data to failed-data
+		failedParents.addAll(failedChilds);
+		failedData = new ArrayList<Integer> (new LinkedHashSet<Integer> (failedParents));
+		
+		// Add data of current symbol to map
+		Map<String, ArrayList> resultMap = new HashMap<String, ArrayList>();
+		resultMap.put("pass", passedData);
+		resultMap.put("failed", failedData);
+		geneticResult.put(symbolName, resultMap);
 	}
 
 	public static void main(String...strings) {
@@ -274,20 +291,38 @@ public class GeneticGenerator {
 		e.extractFunctionsDetails(user.getFilePath());
 		
 		// Initialize the result
-		geneticResult = new HashMap<String, Map<String, ArrayList<Integer>>>();
+		geneticResult = new HashMap<String, Map<String, ArrayList>>();
 		
 		for (int i = 0; i < user.mapping.length; i++) {
 			init();
 			if (user.mapping[i].type.equals("boolean")) {
-				gen.Boolean(user.iterations);
+				boolean[] res = gen.Boolean(user.iterations);
+				
+				for (int index = 0; index < res.length; index++)
+					parents.add(res[index]);
+				
+				mergeResult(user.mapping[i].symbolName);
+				
 				continue;
 			}
 			else if (user.mapping[i].type.equals("String")) {
-				gen.String(user.iterations);
+				String[] res = gen.String(user.iterations);
+				
+				for (int index = 0; index < res.length; index++)
+					parents.add(res[index]);
+				
+				mergeResult(user.mapping[i].symbolName);
+				
 				continue;
 			}
 			else if (user.mapping[i].type.equals("char")) {
-				gen.Char(user.iterations);
+				char[] res = gen.Char(user.iterations);
+				
+				for (int index = 0; index < res.length; index++)
+					parents.add(res[index]);
+				
+				mergeResult(user.mapping[i].symbolName);
+				
 				continue;
 			}
 			else if (user.mapping[i].type.equals("int")) {
@@ -299,7 +334,7 @@ public class GeneticGenerator {
 				if(conds.size() == 0) {
 					// It has to be number of iterations
 					log("No conditions found...");
-					gen.Int(12);
+					gen.Int(user.iterations);
 					return;
 				}
 				generateWithCondition(conds, 10, user.mapping[i].symbolName);
@@ -319,20 +354,9 @@ public class GeneticGenerator {
 				removeDuplicate();
 				log("childs: "+ childs.toString());
 				log("Failed child cases: "+ failedChilds.toString());
-			
-				// Merge passed parent and childs into passed data.
-				parents.addAll(childs);
-				passedData = new ArrayList<Integer> (new LinkedHashSet<Integer>(parents));
 
-				// merge failed parent and child data to failed-data
-				failedParents.addAll(failedChilds);
-				failedData = new ArrayList<Integer> (new LinkedHashSet<Integer> (failedParents));
-				
-				// Add data of current symbol to map
-				Map<String, ArrayList<Integer>> resultMap = new HashMap<String, ArrayList<Integer>>();
-				resultMap.put("pass", passedData);
-				resultMap.put("failed", failedData);
-				geneticResult.put(user.mapping[i].symbolName, resultMap);
+				// merge parent and child data to to genetic result data
+				mergeResult(user.mapping[i].symbolName);
 			}
 		}
 		//Print result map

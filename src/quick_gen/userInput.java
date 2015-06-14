@@ -42,8 +42,8 @@ public class userInput {
 			mapping[i] = new symbolMapping();
 			log("Enter symbol name: ");
 			mapping[i].symbolName = reader.next();
-			log("Enter it's transformation: ");
-			mapping[i].transformation = reader.next();
+			//log("Enter it's transformation: ");
+			//mapping[i].transformation = reader.next();
 			log("Enter it's type: ");
 			mapping[i].type = reader.next();
 		}
